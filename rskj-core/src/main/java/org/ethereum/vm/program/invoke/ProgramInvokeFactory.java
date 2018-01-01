@@ -40,7 +40,8 @@ public interface ProgramInvokeFactory {
     ProgramInvoke createProgramInvoke(Program program, DataWord toAddress, DataWord callerAddress,
                                              DataWord inValue, long inGas,
                                              BigInteger balanceInt, byte[] dataIn,
-                                             Repository repository, BlockStore blockStore, boolean byTestingSuite);
+                                             Repository repository, BlockStore blockStore,
+                                             boolean isStaticCall, boolean byTestingSuite);
 
 
 }

@@ -36,6 +36,7 @@ import java.util.List;
 import static co.rsk.config.RskSystemProperties.CONFIG;
 import static org.ethereum.crypto.HashUtil.sha3;
 import static org.ethereum.util.ByteUtil.EMPTY_BYTE_ARRAY;
+import static org.ethereum.vm.OpCode.CALL;
 
 
 /**
@@ -1075,6 +1076,10 @@ public class VM {
     }
 
     protected void doLOG(){
+        if (program.isStaticCall()) {
+            throw Program.ExceptionHelper.modificationException();
+        }
+
         DataWord size;
         long sizeLong;
         long newMemSize ;
@@ -1216,6 +1221,10 @@ public class VM {
     }
 
     protected void doSSTORE() {
+        if (program.isStaticCall()) {
+            throw Program.ExceptionHelper.modificationException();
+        }
+
         if (computeGas) {
             DataWord newValue = stack.get(stack.size() - 2);
             DataWord oldValue = program.storageLoad(stack.peek());
@@ -1355,6 +1364,10 @@ public class VM {
     }
 
     protected void doCREATE(){
+        if (program.isStaticCall()) {
+            throw Program.ExceptionHelper.modificationException();
+        }
+
         DataWord size;
         long sizeLong;
         long newMemSize ;
@@ -1394,6 +1407,9 @@ public class VM {
 
         // value is always zero in a DELEGATECALL operation
         DataWord value = op.equals(OpCode.DELEGATECALL) ? DataWord.ZERO : program.stackPop();
+
+        if (program.isStaticCall() && op == CALL && !value.isZero())
+            throw new Program.StaticCallModificationException();
 
         DataWord inDataOffs = program.stackPop();
         DataWord inDataSize = program.stackPop();
@@ -1546,6 +1562,10 @@ public class VM {
     }
 
     protected void doSUICIDE(){
+        if (program.isStaticCall()) {
+            throw Program.ExceptionHelper.modificationException();
+        }
+
         if (computeGas) {
             gasCost = GasCost.SUICIDE;
             DataWord suicideAddressWord = stack.get(stack.size() - 1);
@@ -1830,7 +1850,9 @@ public class VM {
             break;
             case OpCodes.OP_CALL:
             case OpCodes.OP_CALLCODE:
-            case OpCodes.OP_DELEGATECALL: doCALL();
+            case OpCodes.OP_DELEGATECALL:
+            case OpCodes.OP_STATICCALL:
+                doCALL();
             break;
             case OpCodes.OP_RETURN: doRETURN();
             break;

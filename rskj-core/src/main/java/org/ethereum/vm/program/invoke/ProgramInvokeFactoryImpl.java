@@ -144,7 +144,8 @@ public class ProgramInvokeFactoryImpl implements ProgramInvokeFactory {
                                              DataWord inValue,
                                              long inGas,
                                              BigInteger balanceInt, byte[] dataIn,
-                                             Repository repository, BlockStore blockStore, boolean byTestingSuite) {
+                                             Repository repository, BlockStore blockStore,
+                                             boolean isStaticCall, boolean byTestingSuite) {
 
         DataWord address = toAddress;
         DataWord origin = program.getOriginAddress();
@@ -200,6 +201,7 @@ public class ProgramInvokeFactoryImpl implements ProgramInvokeFactory {
 
         return new ProgramInvokeImpl(address, origin, caller, balance, gasPrice, agas, callValue,
                 data, lastHash, coinbase, timestamp, number, transactionIndex, difficulty, gasLimit,
-                repository, program.getCallDeep() + 1, blockStore, byTestingSuite);
+                repository, program.getCallDeep() + 1, blockStore,
+                isStaticCall, byTestingSuite);
     }
 }
