@@ -24,6 +24,8 @@ import org.ethereum.core.Blockchain;
 import org.ethereum.core.Repository;
 import org.ethereum.core.Transaction;
 import org.ethereum.rpc.TypeConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.BigIntegers;
 
 import java.math.BigInteger;
@@ -40,6 +42,7 @@ class TxValidator {
 
     private List<TxValidatorStep> validatorSteps = new LinkedList<>();
     private List<TxFilter> txFilters = new LinkedList<>();
+    private static final Logger logger = LoggerFactory.getLogger("web3");
 
     public TxValidator() {
         validatorSteps.add(new TxValidatorAccountStateValidator());
@@ -84,6 +87,7 @@ class TxValidator {
             long bestBlockNumber = blockchain.getBestBlock().getNumber();
             long basicTxCost = tx.transactionCost(blockchain.getBestBlock());
 
+            logger.error("BASIC TX COST {}", basicTxCost);
             boolean valid = true;
 
             for (TxValidatorStep step : validatorSteps) {
@@ -104,6 +108,7 @@ class TxValidator {
 
             BigInteger nonce = new BigInteger(1, tx.getNonce());
             if (txsPerAccount.containsNonce(nonce)) {
+                logger.error("EL ERROR ESTA EN EL NONCE {}", nonce);
                 continue;
             }
             txsPerAccount.getTransactions().add(tx);
