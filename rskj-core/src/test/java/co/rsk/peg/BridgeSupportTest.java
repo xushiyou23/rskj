@@ -205,7 +205,6 @@ public class BridgeSupportTest {
         RskSystemProperties.CONFIG.setBlockchainConfig(blockchainNetConfigOriginal);
     }
 
-
     @Test
     public void testGetBtcBlockchainBlockLocatorWithBtcCheckpoints() throws Exception {
         BlockchainNetConfig blockchainNetConfigOriginal = RskSystemProperties.CONFIG.getBlockchainConfig();
@@ -2935,6 +2934,47 @@ public class BridgeSupportTest {
         BridgeSupport bridgeSupport = new BridgeSupport(repositoryMock, "aabbccdd", provider, null, null, constants, null);
         assertThat(bridgeSupport.voteFeePerKbChange(tx, Coin.CENT), is(1));
         verify(provider).setFeePerKb(Coin.CENT);
+    }
+
+    @Test
+    public void getBtcBlockchainInitialBlockHeight() {
+        BridgeSupport bridgeSupport = new BridgeSupport(null, null, null, null, null, RskSystemProperties.CONFIG.getBlockchainConfig().getCommonConstants().getBridgeConstants(), null);
+        StoredBlock initialBlockMock = mock(StoredBlock.class);
+        when(initialBlockMock.getHeight()).thenReturn(123);
+        Whitebox.setInternalState(bridgeSupport, "initialBtcStoredBlock", initialBlockMock);
+
+        Assert.assertEquals(123, bridgeSupport.getBtcBlockchainInitialBlockHeight());
+    }
+
+    @Test
+    public void getBtcBlockchainBlockHashAtDepth() throws Exception {
+        BlockchainNetConfig blockchainNetConfigOriginal = RskSystemProperties.CONFIG.getBlockchainConfig();
+        RskSystemProperties.CONFIG.setBlockchainConfig(new RegTestConfig());
+        NetworkParameters networkParameters = RskSystemProperties.CONFIG.getBlockchainConfig().getCommonConstants().getBridgeConstants().getBtcParams();
+
+        Repository repository = new RepositoryImpl();
+        Repository track = repository.startTracking();
+
+        BridgeStorageProvider provider = new BridgeStorageProvider(track, PrecompiledContracts.BRIDGE_ADDR, RskSystemProperties.CONFIG.getBlockchainConfig().getCommonConstants().getBridgeConstants());
+        BridgeSupport bridgeSupport = new BridgeSupport(track, PrecompiledContracts.BRIDGE_ADDR, provider, null, BridgeRegTestConstants.getInstance(), mock(BridgeEventLogger.class));
+        Assert.assertEquals(0, bridgeSupport.getBtcBlockStore().getChainHead().getHeight());
+        Assert.assertEquals(networkParameters.getGenesisBlock(), bridgeSupport.getBtcBlockStore().getChainHead().getHeader());
+
+        Assert.assertEquals(networkParameters.getGenesisBlock().getHash(), bridgeSupport.getBtcBlockchainBlockHashAtDepth(0));
+        try { bridgeSupport.getBtcBlockchainBlockHashAtDepth(-1); Assert.fail(); } catch (IndexOutOfBoundsException e) {}
+        try { bridgeSupport.getBtcBlockchainBlockHashAtDepth(1); Assert.fail(); } catch (IndexOutOfBoundsException e) {}
+
+        List<BtcBlock> blocks = createBtcBlocks(networkParameters, networkParameters.getGenesisBlock(), 10);
+        bridgeSupport.receiveHeaders(blocks.toArray(new BtcBlock[]{}));
+
+        Assert.assertEquals(networkParameters.getGenesisBlock().getHash(), bridgeSupport.getBtcBlockchainBlockHashAtDepth(10));
+        try { bridgeSupport.getBtcBlockchainBlockHashAtDepth(-1); Assert.fail(); } catch (IndexOutOfBoundsException e) {}
+        try { bridgeSupport.getBtcBlockchainBlockHashAtDepth(11); Assert.fail(); } catch (IndexOutOfBoundsException e) {}
+        for (int i = 0; i < 10; i++) {
+            Assert.assertEquals(blocks.get(i).getHash(), bridgeSupport.getBtcBlockchainBlockHashAtDepth(9-i));
+        }
+
+        RskSystemProperties.CONFIG.setBlockchainConfig(blockchainNetConfigOriginal);
     }
 
     private BridgeStorageProvider getBridgeStorageProviderMockWithProcessedHashes() throws IOException {
