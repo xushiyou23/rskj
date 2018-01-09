@@ -27,6 +27,8 @@ import co.rsk.peg.utils.BridgeEventLogger;
 import co.rsk.peg.utils.BridgeEventLoggerImpl;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.tuple.Pair;
+import org.ethereum.config.BlockchainConfig;
+import org.ethereum.config.BlockchainNetConfig;
 import org.ethereum.core.CallTransaction;
 import org.ethereum.core.Repository;
 import org.ethereum.db.ByteArrayWrapper;
@@ -166,6 +168,8 @@ public class Bridge extends PrecompiledContracts.PrecompiledContract {
     private Map<ByteArrayWrapper, CallTransaction.Function> functions = new HashMap<>();
     private static Map<CallTransaction.Function, Long> functionCostMap = new HashMap<>();
 
+    private BlockchainNetConfig blockchainNetConfig;
+    private BlockchainConfig blockchainConfig;
     private BridgeConstants bridgeConstants;
 
     private org.ethereum.core.Transaction rskTx;
@@ -177,61 +181,21 @@ public class Bridge extends PrecompiledContracts.PrecompiledContract {
 
     public Bridge(String contractAddress) {
         this.contractAddress = contractAddress;
-
-        Arrays.stream(new Object[]{
-            Pair.of(UPDATE_COLLECTIONS, 48000L),
-            Pair.of(RECEIVE_HEADERS, 22000L),
-            Pair.of(REGISTER_BTC_TRANSACTION, 22000L),
-            Pair.of(RELEASE_BTC, 23000L),
-            Pair.of(ADD_SIGNATURE, 70000L),
-            Pair.of(GET_STATE_FOR_BTC_RELEASE_CLIENT, 4000L),
-            Pair.of(GET_STATE_FOR_DEBUGGING, 3_000_000L),
-            Pair.of(GET_BTC_BLOCKCHAIN_BEST_CHAIN_HEIGHT, 19000L),
-            Pair.of(GET_BTC_BLOCKCHAIN_INITIAL_BLOCK_HEIGHT, 19000L), // TODO: estimate cost
-            Pair.of(GET_BTC_BLOCKCHAIN_BLOCK_LOCATOR, 76000L),
-            Pair.of(GET_BTC_BLOCKCHAIN_BLOCK_HASH_AT_DEPTH, 76000L), // TODO: estimate cost
-            Pair.of(GET_MINIMUM_LOCK_TX_VALUE, 2000L),
-            Pair.of(IS_BTC_TX_HASH_ALREADY_PROCESSED, 23000L),
-            Pair.of(GET_BTC_TX_HASH_PROCESSED_HEIGHT, 22000L),
-            Pair.of(GET_FEDERATION_ADDRESS, 11000L),
-            Pair.of(GET_FEDERATION_SIZE, 10000L),
-            Pair.of(GET_FEDERATION_THRESHOLD, 11000L),
-            Pair.of(GET_FEDERATOR_PUBLIC_KEY, 10000L),
-            Pair.of(GET_FEDERATION_CREATION_TIME, 10000L),
-            Pair.of(GET_FEDERATION_CREATION_BLOCK_NUMBER, 10000L),
-            Pair.of(GET_RETIRING_FEDERATION_ADDRESS, 3000L),
-            Pair.of(GET_RETIRING_FEDERATION_SIZE, 3000L),
-            Pair.of(GET_RETIRING_FEDERATION_THRESHOLD, 3000L),
-            Pair.of(GET_RETIRING_FEDERATOR_PUBLIC_KEY, 3000L),
-            Pair.of(GET_RETIRING_FEDERATION_CREATION_TIME, 3000L),
-            Pair.of(GET_RETIRING_FEDERATION_CREATION_BLOCK_NUMBER, 3000L),
-            Pair.of(CREATE_FEDERATION, 11000L),
-            Pair.of(ADD_FEDERATOR_PUBLIC_KEY, 13000L),
-            Pair.of(COMMIT_FEDERATION, 38000L),
-            Pair.of(ROLLBACK_FEDERATION, 12000L),
-            Pair.of(GET_PENDING_FEDERATION_HASH, 3000L),
-            Pair.of(GET_PENDING_FEDERATION_SIZE, 3000L),
-            Pair.of(GET_PENDING_FEDERATOR_PUBLIC_KEY, 3000L),
-            Pair.of(GET_LOCK_WHITELIST_SIZE, 16000L),
-            Pair.of(GET_LOCK_WHITELIST_ADDRESS, 16000L),
-            Pair.of(ADD_LOCK_WHITELIST_ADDRESS, 25000L),
-            Pair.of(REMOVE_LOCK_WHITELIST_ADDRESS, 24000L),
-            Pair.of(SET_LOCK_WHITELIST_DISABLE_BLOCK_DELAY, 24000L),
-            Pair.of(GET_FEE_PER_KB, 2000L),
-            Pair.of(VOTE_FEE_PER_KB, 10000L)
-        }).forEach((Object obj) -> {
-            Pair<CallTransaction.Function, Long> spec = (Pair<CallTransaction.Function, Long>) obj;
-            CallTransaction.Function func = spec.getLeft();
-            Long cost = spec.getRight();
-            this.functions.put(new ByteArrayWrapper(func.encodeSignature()),  func);
-            functionCostMap.put(func, cost);
-        });
-
-        bridgeConstants = RskSystemProperties.CONFIG.getBlockchainConfig().getCommonConstants().getBridgeConstants();
+        blockchainNetConfig = RskSystemProperties.CONFIG.getBlockchainConfig();
+        bridgeConstants = blockchainNetConfig.getCommonConstants().getBridgeConstants();
     }
 
     @Override
     public long getGasForData(byte[] data) {
+        // If being called from a contract pre the RFS-90 fork, this would throw a null pointer exception
+        // Mimic the same behavior
+        if (!blockchainConfig.isRfs90()) {
+            byte[] senderCode = repository.getCode(rskTx.getSender());
+            if (senderCode != null && senderCode.length > 0) {
+                throw new RuntimeException("Trying to estimate gas from contract pre RFS-90 fork");
+            }
+        }
+
         if (BridgeUtils.isFreeBridgeTx(rskTx, rskExecutionBlock.getNumber())) {
             return 0;
         }
@@ -299,6 +263,64 @@ public class Bridge extends PrecompiledContracts.PrecompiledContract {
         this.rskExecutionBlock = rskExecutionBlock;
         this.repository = repository;
         this.logs = logs;
+        this.blockchainConfig = blockchainNetConfig.getConfigForBlock(rskExecutionBlock.getNumber());
+        configureFunctions();
+    }
+
+    private void configureFunctions() {
+        List<Pair<CallTransaction.Function, Long>> functionsAndCosts = new ArrayList<>(Arrays.asList(
+            Pair.of(UPDATE_COLLECTIONS, 48000L),
+            Pair.of(RECEIVE_HEADERS, 22000L),
+            Pair.of(REGISTER_BTC_TRANSACTION, 22000L),
+            Pair.of(RELEASE_BTC, 23000L),
+            Pair.of(ADD_SIGNATURE, 70000L),
+            Pair.of(GET_STATE_FOR_BTC_RELEASE_CLIENT, 4000L),
+            Pair.of(GET_STATE_FOR_DEBUGGING, 3_000_000L),
+            Pair.of(GET_BTC_BLOCKCHAIN_BEST_CHAIN_HEIGHT, 19000L),
+            Pair.of(GET_BTC_BLOCKCHAIN_BLOCK_LOCATOR, 76000L),
+            Pair.of(GET_MINIMUM_LOCK_TX_VALUE, 2000L),
+            Pair.of(IS_BTC_TX_HASH_ALREADY_PROCESSED, 23000L),
+            Pair.of(GET_BTC_TX_HASH_PROCESSED_HEIGHT, 22000L),
+            Pair.of(GET_FEDERATION_ADDRESS, 11000L),
+            Pair.of(GET_FEDERATION_SIZE, 10000L),
+            Pair.of(GET_FEDERATION_THRESHOLD, 11000L),
+            Pair.of(GET_FEDERATOR_PUBLIC_KEY, 10000L),
+            Pair.of(GET_FEDERATION_CREATION_TIME, 10000L),
+            Pair.of(GET_FEDERATION_CREATION_BLOCK_NUMBER, 10000L),
+            Pair.of(GET_RETIRING_FEDERATION_ADDRESS, 3000L),
+            Pair.of(GET_RETIRING_FEDERATION_SIZE, 3000L),
+            Pair.of(GET_RETIRING_FEDERATION_THRESHOLD, 3000L),
+            Pair.of(GET_RETIRING_FEDERATOR_PUBLIC_KEY, 3000L),
+            Pair.of(GET_RETIRING_FEDERATION_CREATION_TIME, 3000L),
+            Pair.of(GET_RETIRING_FEDERATION_CREATION_BLOCK_NUMBER, 3000L),
+            Pair.of(CREATE_FEDERATION, 11000L),
+            Pair.of(ADD_FEDERATOR_PUBLIC_KEY, 13000L),
+            Pair.of(COMMIT_FEDERATION, 38000L),
+            Pair.of(ROLLBACK_FEDERATION, 12000L),
+            Pair.of(GET_PENDING_FEDERATION_HASH, 3000L),
+            Pair.of(GET_PENDING_FEDERATION_SIZE, 3000L),
+            Pair.of(GET_PENDING_FEDERATOR_PUBLIC_KEY, 3000L),
+            Pair.of(GET_LOCK_WHITELIST_SIZE, 16000L),
+            Pair.of(GET_LOCK_WHITELIST_ADDRESS, 16000L),
+            Pair.of(ADD_LOCK_WHITELIST_ADDRESS, 25000L),
+            Pair.of(REMOVE_LOCK_WHITELIST_ADDRESS, 24000L),
+            Pair.of(SET_LOCK_WHITELIST_DISABLE_BLOCK_DELAY, 24000L),
+            Pair.of(GET_FEE_PER_KB, 2000L),
+            Pair.of(VOTE_FEE_PER_KB, 10000L)
+        ));
+
+        if (blockchainConfig.isRfs55()) {
+            functionsAndCosts.add(Pair.of(GET_BTC_BLOCKCHAIN_INITIAL_BLOCK_HEIGHT, 19000L)); // TODO: estimate cost
+            functionsAndCosts.add(Pair.of(GET_BTC_BLOCKCHAIN_BLOCK_HASH_AT_DEPTH, 76000L)); // TODO: estimate cost
+        }
+
+        functionsAndCosts.stream().forEach((Object obj) -> {
+            Pair<CallTransaction.Function, Long> spec = (Pair<CallTransaction.Function, Long>) obj;
+            CallTransaction.Function func = spec.getLeft();
+            Long cost = spec.getRight();
+            functions.put(new ByteArrayWrapper(func.encodeSignature()),  func);
+            functionCostMap.put(func, cost);
+        });
     }
 
     @Override

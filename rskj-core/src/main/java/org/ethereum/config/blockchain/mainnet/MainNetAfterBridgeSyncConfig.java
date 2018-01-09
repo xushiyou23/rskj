@@ -1,8 +1,9 @@
-package org.ethereum.config.blockchain;
+package org.ethereum.config.blockchain.mainnet;
 
 import co.rsk.config.BridgeConstants;
 import co.rsk.config.BridgeMainNetConstants;
 import org.ethereum.config.Constants;
+import org.ethereum.config.blockchain.GenesisConfig;
 import org.ethereum.core.BlockHeader;
 
 import java.math.BigInteger;
@@ -35,13 +36,13 @@ public class MainNetAfterBridgeSyncConfig extends GenesisConfig {
 
         @Override
         public byte getChainId() {
-            return org.ethereum.config.blockchain.MainNetAfterBridgeSyncConfig.MainNetConstants.CHAIN_ID;
+            return MainNetAfterBridgeSyncConfig.MainNetConstants.CHAIN_ID;
         }
 
     }
 
     public MainNetAfterBridgeSyncConfig() {
-        super(new org.ethereum.config.blockchain.MainNetAfterBridgeSyncConfig.MainNetConstants());
+        super(new MainNetAfterBridgeSyncConfig.MainNetConstants());
     }
 
     protected MainNetAfterBridgeSyncConfig(Constants constants) {
