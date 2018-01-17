@@ -19,6 +19,7 @@
 
 package org.ethereum.util;
 
+import co.rsk.core.Coin;
 import co.rsk.core.RskAddress;
 import co.rsk.util.ByteBufferUtil;
 import co.rsk.util.RLPElementType;
@@ -428,6 +429,15 @@ public class RLP {
         }
     }
 
+    @Nonnull
+    public static Coin parseCoin(@Nullable byte[] bytes) {
+        if (bytes == null || isAllZeroes(bytes)) {
+            return Coin.ZERO;
+        } else {
+            return new Coin(bytes);
+        }
+    }
+
     /**
      * Get exactly one message payload
      */
@@ -561,6 +571,14 @@ public class RLP {
         }
 
         return encodeElement(addr.getBytes());
+    }
+
+    public static byte[] encodeCoin(@Nullable Coin coin) {
+        if (coin == null) {
+            return encodeBigInteger(BigInteger.ZERO);
+        }
+
+        return encodeBigInteger(coin.asBigInteger());
     }
 
     public static byte[] encodeElement(byte[] srcData) {
