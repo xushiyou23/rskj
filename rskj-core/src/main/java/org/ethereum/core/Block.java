@@ -129,7 +129,7 @@ public class Block {
 
         this(parentHash, unclesHash, coinbase, logsBloom, difficulty, number, gasLimit,
                 gasUsed, timestamp, extraData, mixHash, nonce, receiptsRoot, transactionsRoot,
-                stateRoot, transactionsList, uncleList, minimumGasPrice, BigInteger.ZERO);
+                stateRoot, transactionsList, uncleList, minimumGasPrice, Coin.ZERO);
 
         this.header.setBitcoinMergedMiningCoinbaseTransaction(bitcoinMergedMiningCoinbaseTransaction);
         this.header.setBitcoinMergedMiningHeader(bitcoinMergedMiningHeader);
@@ -143,7 +143,7 @@ public class Block {
                  long gasUsed, long timestamp, byte[] extraData,
                  byte[] mixHash, byte[] nonce, byte[] receiptsRoot,
                  byte[] transactionsRoot, byte[] stateRoot,
-                 List<Transaction> transactionsList, List<BlockHeader> uncleList, byte[] minimumGasPrice, BigInteger paidFees) {
+                 List<Transaction> transactionsList, List<BlockHeader> uncleList, byte[] minimumGasPrice, Coin paidFees) {
 
         this(parentHash, unclesHash, coinbase, logsBloom, difficulty, number, gasLimit,
                 gasUsed, timestamp, extraData, mixHash, nonce, transactionsList, uncleList, minimumGasPrice);
@@ -343,7 +343,7 @@ public class Block {
         return this.header.getDifficultyBI();
     }
 
-    public BigInteger getFeesPaidToMiner() {
+    public Coin getFeesPaidToMiner() {
         if (!parsed) {
             parseRLP();
         }
@@ -527,7 +527,7 @@ public class Block {
 
         return Coin.ZERO.equals(tx.getValue()) &&
                 BigInteger.ZERO.equals(new BigInteger(1, tx.getGasLimit())) &&
-                BigInteger.ZERO.equals(new BigInteger(1, tx.getGasPrice()));
+                Coin.ZERO.equals(tx.getGasPrice());
 
     }
 

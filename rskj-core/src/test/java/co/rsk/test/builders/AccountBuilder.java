@@ -18,7 +18,7 @@
 
 package co.rsk.test.builders;
 
-import co.rsk.core.RskAddress;
+import co.rsk.core.Coin;
 import co.rsk.core.bc.BlockChainImpl;
 import co.rsk.test.World;
 import org.ethereum.core.Account;
@@ -34,7 +34,7 @@ import java.math.BigInteger;
  */
 public class AccountBuilder {
     private String name;
-    private BigInteger balance;
+    private Coin balance;
     private byte[] code;
     private BlockChainImpl blockChain;
 
@@ -54,7 +54,7 @@ public class AccountBuilder {
         return this;
     }
 
-    public AccountBuilder balance(BigInteger balance) {
+    public AccountBuilder balance(Coin balance) {
         this.balance = balance;
         return this;
     }

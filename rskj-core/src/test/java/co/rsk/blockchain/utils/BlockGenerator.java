@@ -19,6 +19,7 @@
 package co.rsk.blockchain.utils;
 
 import co.rsk.config.RskSystemProperties;
+import co.rsk.core.Coin;
 import co.rsk.core.DifficultyCalculator;
 import co.rsk.core.RskAddress;
 import co.rsk.core.bc.BlockChainImpl;
@@ -42,7 +43,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.ethereum.core.Genesis.getZeroHash;
 import static org.ethereum.crypto.HashUtil.EMPTY_TRIE_HASH;
@@ -120,7 +120,7 @@ public class BlockGenerator {
         Map<RskAddress, InitialAddressState> premine = new HashMap<>();
 
         for (byte[] key : alloc.keySet()) {
-            AccountState acctState = new AccountState(BigInteger.valueOf(0), alloc.get(key));
+            AccountState acctState = new AccountState(BigInteger.valueOf(0), new Coin(alloc.get(key)));
             premine.put(new RskAddress(key), new InitialAddressState(acctState, null));
         }
 
@@ -175,7 +175,7 @@ public class BlockGenerator {
                 txs,       // transaction list
                 uncles,        // uncle list
                 null,
-                BigInteger.valueOf(fees)
+                Coin.valueOf(fees)
         );
 //        return createChildBlock(parent, 0);
     }
@@ -210,7 +210,7 @@ public class BlockGenerator {
                 txs,       // transaction list
                 null,        // uncle list
                 null,
-                BigInteger.ZERO
+                Coin.ZERO
         );
     }
 
@@ -317,7 +317,7 @@ public class BlockGenerator {
                 txs,       // transaction list
                 null,        // uncle list
                 minimumGasPrice.toByteArray(),
-                BigInteger.ZERO
+                Coin.ZERO
         );
     }
 
@@ -372,7 +372,7 @@ public class BlockGenerator {
                 txs,       // transaction list
                 null,        // uncle list
                 null,
-                BigInteger.ZERO
+                Coin.ZERO
         );
 
         ECKey fallbackMiningKey0 = ECKey.fromPrivate(BigInteger.TEN);
