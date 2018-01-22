@@ -620,7 +620,7 @@ public class MinerServerImpl implements MinerServer {
 
         final List<Transaction> txsToRemove = new ArrayList<>();
 
-        Coin minimumGasPrice = new MinimumGasPriceCalculator().calculate(new Coin(newBlockParent.getMinGasPriceAsInteger()), new Coin(minerMinGasPriceTarget));
+        Coin minimumGasPrice = new MinimumGasPriceCalculator().calculate(newBlockParent.getMinimumGasPrice(), new Coin(minerMinGasPriceTarget));
         final List<Transaction> txs = getTransactions(txsToRemove, newBlockParent, minimumGasPrice);
         minimumAcceptableTime = newBlockParent.getTimestamp() + 1;
 
