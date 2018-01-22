@@ -19,8 +19,8 @@
 
 package org.ethereum.core;
 
-import co.rsk.core.RskAddress;
 import co.rsk.config.RskSystemProperties;
+import co.rsk.core.RskAddress;
 import co.rsk.core.bc.BlockChainImpl;
 import co.rsk.core.bc.PendingStateImpl;
 import co.rsk.db.RepositoryImpl;
@@ -52,8 +52,7 @@ public class ImportLightTest {
                 return BigInteger.ONE;
             }
         }));
-        IndexedBlockStore blockStore = new IndexedBlockStore(config);
-        blockStore.init(new HashMap<>(), new HashMapDB(), null);
+        IndexedBlockStore blockStore = new IndexedBlockStore(new HashMap<>(), new HashMapDB(), null);
 
         Repository repository = new RepositoryImpl(config, new TrieStoreImpl(new HashMapDB()));
 
