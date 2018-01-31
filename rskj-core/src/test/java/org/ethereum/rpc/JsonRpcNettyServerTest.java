@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.ethereum.vm.program.Program;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -26,6 +29,16 @@ public class JsonRpcNettyServerTest {
 
     private static JsonNodeFactory JSON_NODE_FACTORY = JsonNodeFactory.instance;
     private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @BeforeClass
+    public static void init() {
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "false");
+    }
 
     @Test
     public void smokeTestUsingJsonContentType() throws Exception {
@@ -52,7 +65,17 @@ public class JsonRpcNettyServerTest {
         smokeTest("text/plain");
     }
 
-    public void smokeTest(String contentType) throws Exception {
+    @Test
+    public void smokeTestUsingValidHost() throws Exception {
+        smokeTest("application/json", "localhost");
+    }
+
+    @Test(expected = IOException.class)
+    public void smokeTestUsingInvalidHost() throws Exception {
+        smokeTest("application/json", "evil.com");
+    }
+
+    private void smokeTest(String contentType, String host) throws Exception {
         Web3 web3Mock = Mockito.mock(Web3.class);
         String mockResult = "output";
         Mockito.when(web3Mock.web3_sha3(Mockito.anyString())).thenReturn(mockResult);
@@ -68,7 +91,7 @@ public class JsonRpcNettyServerTest {
         JsonRpcNettyServer server = new JsonRpcNettyServer(InetAddress.getLoopbackAddress(), randomPort, 0, Boolean.TRUE, mockCorsConfiguration, filterHandler, serverHandler);
         server.start();
 
-        HttpURLConnection conn = sendJsonRpcMessage(randomPort, contentType);
+        HttpURLConnection conn = sendJsonRpcMessage(randomPort, contentType, host);
         JsonNode jsonRpcResponse = OBJECT_MAPPER.readTree(conn.getInputStream());
 
         assertThat(conn.getResponseCode(), is(HttpResponseStatus.OK.code()));
@@ -76,7 +99,11 @@ public class JsonRpcNettyServerTest {
         server.stop();
     }
 
-    private HttpURLConnection sendJsonRpcMessage(int port, String contentType) throws IOException {
+    private void smokeTest(String contentType) throws Exception {
+        smokeTest(contentType, "127.0.0.1");
+    }
+
+    private HttpURLConnection sendJsonRpcMessage(int port, String contentType, String host) throws IOException {
         Map<String, JsonNode> jsonRpcRequestProperties = new HashMap<>();
         jsonRpcRequestProperties.put("jsonrpc", JSON_NODE_FACTORY.textNode("2.0"));
         jsonRpcRequestProperties.put("id", JSON_NODE_FACTORY.numberNode(13));
@@ -91,6 +118,7 @@ public class JsonRpcNettyServerTest {
         jsonRpcConnection.setRequestMethod("POST");
         jsonRpcConnection.setRequestProperty("Content-Type", contentType);
         jsonRpcConnection.setRequestProperty("Content-Length", String.valueOf(request.length));
+        jsonRpcConnection.setRequestProperty("Host", host);
         OutputStream os = jsonRpcConnection.getOutputStream();
         os.write(request);
         return jsonRpcConnection;
