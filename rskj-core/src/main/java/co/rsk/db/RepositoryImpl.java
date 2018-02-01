@@ -20,6 +20,7 @@ package co.rsk.db;
 
 import co.rsk.config.RskSystemProperties;
 import co.rsk.core.RskAddress;
+import co.rsk.crypto.Sha3Hash;
 import co.rsk.trie.Trie;
 import co.rsk.trie.TrieImpl;
 import co.rsk.trie.TrieStore;
@@ -299,7 +300,7 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public synchronized void syncToRoot(byte[] root) {
-        this.trie = this.trie.getSnapshotTo(root);
+        this.trie = this.trie.getSnapshotTo(new Sha3Hash(root));
     }
 
     @Override

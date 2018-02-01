@@ -56,7 +56,7 @@ public interface Trie {
 
     void setHash(int n, Sha3Hash hash);
 
-    Trie getSnapshotTo(byte[] hash);
+    Trie getSnapshotTo(Sha3Hash hash);
 
     byte[] serialize();
 
