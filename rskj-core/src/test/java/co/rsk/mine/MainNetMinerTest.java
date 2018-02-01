@@ -73,7 +73,7 @@ public class MainNetMinerTest {
 
         BlockUnclesValidationRule unclesValidationRule = Mockito.mock(BlockUnclesValidationRule.class);
         Mockito.when(unclesValidationRule.isValid(Mockito.any())).thenReturn(true);
-        MinerServer minerServer = new MinerServerImpl(config, ethereumImpl, this.blockchain, null, this.blockchain.getPendingState(), blockchain.getRepository(), ConfigUtils.getDefaultMiningConfig(), unclesValidationRule, world.getBlockProcessor(), DIFFICULTY_CALCULATOR,
+        MinerServer minerServer = new MinerServerImpl(config, ethereumImpl, this.blockchain, null, null, this.blockchain.getPendingState(), blockchain.getRepository(), ConfigUtils.getDefaultMiningConfig(), unclesValidationRule, world.getBlockProcessor(), DIFFICULTY_CALCULATOR,
                 new GasLimitCalculator(config),
                 new ProofOfWorkRule(config).setFallbackMiningEnabled(false));
         try {
@@ -163,7 +163,7 @@ public class MainNetMinerTest {
         BlockUnclesValidationRule unclesValidationRule = Mockito.mock(BlockUnclesValidationRule.class);
         Mockito.when(unclesValidationRule.isValid(Mockito.any())).thenReturn(true);
         MinerServer minerServer = new MinerServerImpl(tempConfig, ethereumImpl, blockchain, null,
-                blockchain.getPendingState(), blockchain.getRepository(), ConfigUtils.getDefaultMiningConfig(),
+                blockchain.getReceiptStore(), blockchain.getPendingState(), blockchain.getRepository(), ConfigUtils.getDefaultMiningConfig(),
                 unclesValidationRule, null, DIFFICULTY_CALCULATOR,
                 new GasLimitCalculator(config),
                 new ProofOfWorkRule(tempConfig).setFallbackMiningEnabled(true)
@@ -236,7 +236,7 @@ public class MainNetMinerTest {
         BlockUnclesValidationRule unclesValidationRule = Mockito.mock(BlockUnclesValidationRule.class);
         Mockito.when(unclesValidationRule.isValid(Mockito.any())).thenReturn(true);
         MinerServer minerServer = new MinerServerImpl(config, ethereumImpl, this.blockchain, null,
-                this.blockchain.getPendingState(), blockchain.getRepository(),
+                null, this.blockchain.getPendingState(), blockchain.getRepository(),
                 ConfigUtils.getDefaultMiningConfig(), unclesValidationRule,
                 world.getBlockProcessor(), DIFFICULTY_CALCULATOR,
                 new GasLimitCalculator(config),

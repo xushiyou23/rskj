@@ -147,11 +147,12 @@ public class RskFactory {
                                             PeerScoringManager peerScoringManager,
                                             NetworkStateExporter networkStateExporter,
                                             org.ethereum.db.BlockStore blockStore,
+                                            ReceiptStore receiptStore,
                                             PeerServer peerServer,
                                             BlockProcessor nodeBlockProcessor,
                                             HashRateCalculator hashRateCalculator,
                                             ConfigCapabilities configCapabilities) {
-        return () -> new Web3RskImpl(rsk, blockchain, pendingState, config, minerClient, minerServer, personalModule, ethModule, channelManager, repository, peerScoringManager, networkStateExporter, blockStore, peerServer, nodeBlockProcessor, hashRateCalculator, configCapabilities);
+        return () -> new Web3RskImpl(rsk, blockchain, pendingState, config, minerClient, minerServer, personalModule, ethModule, channelManager, repository, peerScoringManager, networkStateExporter, blockStore, receiptStore, peerServer, nodeBlockProcessor, hashRateCalculator, configCapabilities);
     }
 
     @Bean
