@@ -22,8 +22,6 @@ import org.ethereum.datasource.HashMapDB;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.ethereum.crypto.SHA3Helper.sha3;
 
 /**
@@ -40,8 +38,8 @@ public class SecureTrieImplStoreTest {
         store.save(trie);
 
         Assert.assertEquals(1, map.keys().size());
-        Assert.assertNotNull(map.get(trie.getHash()));
-        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash()));
+        Assert.assertNotNull(map.get(trie.getHash().getBytes()));
+        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash().getBytes()));
 
         Assert.assertEquals(1, store.getSaveCount());
     }
@@ -59,12 +57,12 @@ public class SecureTrieImplStoreTest {
         store.save(trie);
 
         Assert.assertEquals(2, map.keys().size());
-        Assert.assertNotNull(map.get(trie.getHash()));
-        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash()));
+        Assert.assertNotNull(map.get(trie.getHash().getBytes()));
+        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash().getBytes()));
 
         Assert.assertEquals(2, store.getSaveCount());
 
-        Trie newTrie = store.retrieve(trie.getHash());
+        Trie newTrie = store.retrieve(trie.getHash().getBytes());
 
         Assert.assertNotNull(newTrie);
         Assert.assertEquals(1, newTrie.trieSize());
@@ -82,8 +80,8 @@ public class SecureTrieImplStoreTest {
         trie.save();
 
         Assert.assertEquals(trie.trieSize(), map.keys().size());
-        Assert.assertNotNull(map.get(trie.getHash()));
-        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash()));
+        Assert.assertNotNull(map.get(trie.getHash().getBytes()));
+        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash().getBytes()));
 
         Assert.assertEquals(trie.trieSize(), store.getSaveCount());
     }
@@ -99,8 +97,8 @@ public class SecureTrieImplStoreTest {
         trie.save();
 
         Assert.assertEquals(trie.trieSize() + 1, map.keys().size());
-        Assert.assertNotNull(map.get(trie.getHash()));
-        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash()));
+        Assert.assertNotNull(map.get(trie.getHash().getBytes()));
+        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash().getBytes()));
 
         Assert.assertEquals(trie.trieSize() + 1, store.getSaveCount());
     }
@@ -117,8 +115,8 @@ public class SecureTrieImplStoreTest {
         trie.save();
 
         Assert.assertEquals(trie.trieSize() + 2, map.keys().size());
-        Assert.assertNotNull(map.get(trie.getHash()));
-        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash()));
+        Assert.assertNotNull(map.get(trie.getHash().getBytes()));
+        Assert.assertArrayEquals(trie.toMessage(), map.get(trie.getHash().getBytes()));
 
         Assert.assertEquals(trie.trieSize() + 2, store.getSaveCount());
     }
@@ -254,7 +252,7 @@ public class SecureTrieImplStoreTest {
         trie.save();
         int size = trie.trieSize();
 
-        Trie trie2 = store.retrieve(trie.getHash());
+        Trie trie2 = store.retrieve(trie.getHash().getBytes());
 
         Assert.assertEquals(1, store.getRetrieveCount());
 
@@ -275,7 +273,7 @@ public class SecureTrieImplStoreTest {
         trie.save();
         int size = trie.trieSize();
 
-        Trie trie2 = store.retrieve(trie.getHash());
+        Trie trie2 = store.retrieve(trie.getHash().getBytes());
 
         Assert.assertEquals(1, store.getRetrieveCount());
 

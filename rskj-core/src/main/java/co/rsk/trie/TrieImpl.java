@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.ethereum.crypto.SHA3Helper.sha3;
@@ -286,20 +285,20 @@ public class TrieImpl implements Trie {
      * @return  a byte array with the node serialized to bytes
      */
     @Override
-    public byte[] getHash() {
+    public Sha3Hash getHash() {
         if (this.hash != null) {
-            return this.hash.copy().getBytes();
+            return this.hash.copy();
         }
 
         if (isEmptyTrie(this.value, this.nodes, this.hashes)) {
-            return emptyHash.copy().getBytes();
+            return emptyHash.copy();
         }
 
         byte[] message = this.toMessage();
 
         this.hash = new Sha3Hash(SHA3Helper.sha3(message));
 
-        return this.hash.copy().getBytes();
+        return this.hash.copy();
     }
 
     /**
@@ -684,7 +683,7 @@ public class TrieImpl implements Trie {
             return null;
         }
 
-        byte[] localHash = node.getHash();
+        byte[] localHash = node.getHash().getBytes();
 
         this.setHash(n, localHash);
 
@@ -716,7 +715,7 @@ public class TrieImpl implements Trie {
         this.save();
 
         byte[] bytes = this.store.serialize();
-        byte[] root = this.getHash();
+        byte[] root = this.getHash().getBytes();
 
         ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES + SHA3Helper.DEFAULT_SIZE_BYTES + bytes.length);
 

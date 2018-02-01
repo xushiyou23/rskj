@@ -20,9 +20,6 @@
 package org.ethereum.core;
 
 import co.rsk.trie.TrieImpl;
-import org.ethereum.config.SystemProperties;
-import org.ethereum.core.genesis.GenesisLoader;
-import org.ethereum.core.genesis.InitialAddressState;
 import co.rsk.trie.Trie;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -93,8 +89,8 @@ public class BlockTest {
             Assert.assertArrayEquals(encodedAccountState, state.get(accountKey));
         }
 
-        logger.info("root: " + Hex.toHexString(state.getHash()));
-        assertEquals(GENESIS_STATE_ROOT, Hex.toHexString(state.getHash()));
+        logger.info("root: " + Hex.toHexString(state.getHash().getBytes()));
+        assertEquals(GENESIS_STATE_ROOT, Hex.toHexString(state.getHash().getBytes()));
     }
 
 }

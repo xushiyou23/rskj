@@ -116,7 +116,7 @@ public class GenesisLoader {
             state = state.put(key.getData(), premine.get(key).getAccountState().getEncoded());
         }
 
-        return state.getHash();
+        return state.getHash().getBytes();
     }
 
 }

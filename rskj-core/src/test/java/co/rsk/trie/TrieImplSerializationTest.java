@@ -18,6 +18,7 @@
 
 package co.rsk.trie;
 
+import co.rsk.crypto.Sha3Hash;
 import org.ethereum.crypto.SHA3Helper;
 import org.ethereum.datasource.HashMapDB;
 import org.ethereum.util.RLP;
@@ -27,7 +28,6 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 import static org.ethereum.crypto.HashUtil.sha3;
 import static org.ethereum.util.ByteUtil.EMPTY_BYTE_ARRAY;
@@ -36,7 +36,7 @@ import static org.ethereum.util.ByteUtil.EMPTY_BYTE_ARRAY;
  * Created by ajlopez on 06/04/2017.
  */
 public class TrieImplSerializationTest {
-    private static byte[] emptyHash = makeEmptyHash();
+    private static Sha3Hash emptyHash = makeEmptyHash();
 
     @Test
     public void serializeEmptyTrie() throws IOException {
@@ -54,7 +54,7 @@ public class TrieImplSerializationTest {
         byte[] root = new byte[SHA3Helper.DEFAULT_SIZE_BYTES];
         ostream.read(root);
 
-        Assert.assertArrayEquals(emptyHash, root);
+        Assert.assertArrayEquals(emptyHash.getBytes(), root);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class TrieImplSerializationTest {
         byte[] root = new byte[SHA3Helper.DEFAULT_SIZE_BYTES];
         ostream.read(root);
 
-        Assert.assertArrayEquals(trie.getHash(), root);
+        Assert.assertArrayEquals(trie.getHash().getBytes(), root);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class TrieImplSerializationTest {
         byte[] root = new byte[SHA3Helper.DEFAULT_SIZE_BYTES];
         ostream.read(root);
 
-        Assert.assertArrayEquals(trie.getHash(), root);
+        Assert.assertArrayEquals(trie.getHash().getBytes(), root);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.trieSize());
-        Assert.assertArrayEquals(emptyHash, result.getHash());
+        Assert.assertEquals(emptyHash, result.getHash());
     }
 
     @Test
@@ -127,7 +127,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         Assert.assertArrayEquals("bar".getBytes(), result.get("foo".getBytes()));
         Assert.assertArrayEquals("foo".getBytes(), result.get("bar".getBytes()));
@@ -148,7 +148,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         Assert.assertArrayEquals(value1, result.get("foo".getBytes()));
         Assert.assertArrayEquals(value2, result.get("bar".getBytes()));
@@ -166,7 +166,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         Assert.assertArrayEquals("bar".getBytes(), result.get("foo".getBytes()));
         Assert.assertArrayEquals("foo".getBytes(), result.get("bar".getBytes()));
@@ -187,7 +187,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(3, result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         Assert.assertArrayEquals(value1, result.get("foo".getBytes()));
         Assert.assertArrayEquals(value2, result.get("bar".getBytes()));
@@ -206,7 +206,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(trie.trieSize(), result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         for (int k = 0; k < 100; k++)
             Assert.assertArrayEquals(("bar" + k).getBytes(), result.get(("foo" + k).getBytes()));
@@ -225,7 +225,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(trie.trieSize(), result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         for (int k = 0; k < 100; k++)
             Assert.assertArrayEquals(TrieImplValueTest.makeValue(k + 200), result.get(("foo" + k).getBytes()));
@@ -244,7 +244,7 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(trie.trieSize(), result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         for (int k = 0; k < 100; k++)
             Assert.assertArrayEquals(("bar" + k).getBytes(), result.get(("foo" + k).getBytes()));
@@ -263,13 +263,13 @@ public class TrieImplSerializationTest {
 
         Assert.assertNotNull(result);
         Assert.assertEquals(trie.trieSize(), result.trieSize());
-        Assert.assertFalse(Arrays.equals(emptyHash, result.getHash()));
+        Assert.assertNotEquals(emptyHash, result.getHash());
 
         for (int k = 0; k < 100; k++)
             Assert.assertArrayEquals(TrieImplValueTest.makeValue(k + 200), result.get(("foo" + k).getBytes()));
     }
 
-    public static byte[] makeEmptyHash() {
-        return sha3(RLP.encodeElement(EMPTY_BYTE_ARRAY));
+    public static Sha3Hash makeEmptyHash() {
+        return new Sha3Hash(sha3(RLP.encodeElement(EMPTY_BYTE_ARRAY)));
     }
 }

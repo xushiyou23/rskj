@@ -20,6 +20,7 @@ package co.rsk.db;
 
 import co.rsk.config.RskSystemProperties;
 import co.rsk.core.RskAddress;
+import co.rsk.crypto.Sha3Hash;
 import co.rsk.trie.TrieImplHashTest;
 import co.rsk.trie.TrieStore;
 import co.rsk.trie.TrieStoreImpl;
@@ -39,7 +40,7 @@ import java.util.Set;
  * Created by ajlopez on 29/03/2017.
  */
 public class RepositoryImplTest {
-    private static byte[] emptyHash = TrieImplHashTest.makeEmptyHash();
+    private static Sha3Hash emptyHash = TrieImplHashTest.makeEmptyHash();
     private final RskSystemProperties config = new RskSystemProperties();
 
     @Test
@@ -61,7 +62,7 @@ public class RepositoryImplTest {
     public void hasEmptyHashAsRootWhenCreated() {
         RepositoryImpl repository = new RepositoryImpl(config);
 
-        Assert.assertArrayEquals(emptyHash, repository.getRoot());
+        Assert.assertArrayEquals(emptyHash.getBytes(), repository.getRoot());
     }
 
     @Test
@@ -74,7 +75,7 @@ public class RepositoryImplTest {
         Assert.assertEquals(BigInteger.ZERO, accState.getNonce());
         Assert.assertEquals(BigInteger.ZERO, accState.getBalance());
 
-        Assert.assertFalse(Arrays.equals(emptyHash, repository.getRoot()));
+        Assert.assertFalse(Arrays.equals(emptyHash.getBytes(), repository.getRoot()));
     }
 
     @Test

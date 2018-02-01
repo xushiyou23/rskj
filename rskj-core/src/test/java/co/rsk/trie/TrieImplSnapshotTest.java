@@ -18,6 +18,7 @@
 
 package co.rsk.trie;
 
+import co.rsk.crypto.Sha3Hash;
 import org.ethereum.datasource.HashMapDB;
 import org.ethereum.util.RLP;
 import org.junit.Assert;
@@ -30,18 +31,18 @@ import static org.ethereum.util.ByteUtil.EMPTY_BYTE_ARRAY;
  * Created by ajlopez on 05/04/2017.
  */
 public class TrieImplSnapshotTest {
-    private static byte[] emptyHash = makeEmptyHash();
+    private static Sha3Hash emptyHash = makeEmptyHash();
 
     @Test
     public void getSnapshotToEmptyTrie() {
         TrieStore store = new TrieStoreImpl(new HashMapDB());
         Trie trie = new TrieImpl(store, false);
 
-        Trie snapshot = trie.getSnapshotTo(trie.getHash());
+        Trie snapshot = trie.getSnapshotTo(trie.getHash().getBytes());
 
         Assert.assertNotNull(snapshot);
         Assert.assertEquals(trie.trieSize(), snapshot.trieSize());
-        Assert.assertArrayEquals(emptyHash, snapshot.getHash());
+        Assert.assertEquals(emptyHash, snapshot.getHash());
     }
 
     @Test
@@ -51,7 +52,7 @@ public class TrieImplSnapshotTest {
 
         trie = trie.put("foo".getBytes(), "bar".getBytes());
 
-        byte[] hash = trie.getHash();
+        Sha3Hash hash = trie.getHash();
 
         trie.save();
 
@@ -60,10 +61,10 @@ public class TrieImplSnapshotTest {
         Assert.assertNotNull(trie.get("foo".getBytes()));
         Assert.assertNotNull(trie.get("bar".getBytes()));
 
-        Trie snapshot = trie.getSnapshotTo(hash);
+        Trie snapshot = trie.getSnapshotTo(hash.getBytes());
 
         Assert.assertNotNull(snapshot);
-        Assert.assertArrayEquals(hash, snapshot.getHash());
+        Assert.assertEquals(hash, snapshot.getHash());
 
         Assert.assertNotNull(snapshot.get("foo".getBytes()));
         Assert.assertNull(snapshot.get("bar".getBytes()));
@@ -77,7 +78,7 @@ public class TrieImplSnapshotTest {
 
         trie = trie.put("foo".getBytes(), TrieImplValueTest.makeValue(100));
 
-        byte[] hash = trie.getHash();
+        Sha3Hash hash = trie.getHash();
 
         trie.save();
 
@@ -86,10 +87,10 @@ public class TrieImplSnapshotTest {
         Assert.assertNotNull(trie.get("foo".getBytes()));
         Assert.assertNotNull(trie.get("bar".getBytes()));
 
-        Trie snapshot = trie.getSnapshotTo(hash);
+        Trie snapshot = trie.getSnapshotTo(hash.getBytes());
 
         Assert.assertNotNull(snapshot);
-        Assert.assertArrayEquals(hash, snapshot.getHash());
+        Assert.assertEquals(hash, snapshot.getHash());
 
         Assert.assertNotNull(snapshot.get("foo".getBytes()));
         Assert.assertNull(snapshot.get("bar".getBytes()));
@@ -102,7 +103,7 @@ public class TrieImplSnapshotTest {
 
         trie = trie.put("foo".getBytes(), "bar".getBytes());
 
-        byte[] hash = trie.getHash();
+        Sha3Hash hash = trie.getHash();
 
         trie.save();
 
@@ -111,10 +112,10 @@ public class TrieImplSnapshotTest {
         Assert.assertNotNull(trie.get("foo".getBytes()));
         Assert.assertNotNull(trie.get("bar".getBytes()));
 
-        Trie snapshot = TrieImpl.deserialize(trie.serialize()).getSnapshotTo(hash);
+        Trie snapshot = TrieImpl.deserialize(trie.serialize()).getSnapshotTo(hash.getBytes());
 
         Assert.assertNotNull(snapshot);
-        Assert.assertArrayEquals(hash, snapshot.getHash());
+        Assert.assertEquals(hash, snapshot.getHash());
 
         Assert.assertNotNull(snapshot.get("foo".getBytes()));
         Assert.assertNull(snapshot.get("bar".getBytes()));
@@ -130,7 +131,7 @@ public class TrieImplSnapshotTest {
 
         trie = trie.put("foo".getBytes(), value1);
 
-        byte[] hash = trie.getHash();
+        Sha3Hash hash = trie.getHash();
 
         trie.save();
 
@@ -141,17 +142,17 @@ public class TrieImplSnapshotTest {
         Assert.assertNotNull(trie.get("bar".getBytes()));
         Assert.assertArrayEquals(value2, trie.get("bar".getBytes()));
 
-        Trie snapshot = TrieImpl.deserialize(trie.serialize()).getSnapshotTo(hash);
+        Trie snapshot = TrieImpl.deserialize(trie.serialize()).getSnapshotTo(hash.getBytes());
 
         Assert.assertNotNull(snapshot);
-        Assert.assertArrayEquals(hash, snapshot.getHash());
+        Assert.assertEquals(hash, snapshot.getHash());
 
         Assert.assertNotNull(snapshot.get("foo".getBytes()));
         Assert.assertArrayEquals(value1, snapshot.get("foo".getBytes()));
         Assert.assertNull(snapshot.get("bar".getBytes()));
     }
 
-    public static byte[] makeEmptyHash() {
-        return sha3(RLP.encodeElement(EMPTY_BYTE_ARRAY));
+    public static Sha3Hash makeEmptyHash() {
+        return new Sha3Hash(sha3(RLP.encodeElement(EMPTY_BYTE_ARRAY)));
     }
 }

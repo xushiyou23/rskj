@@ -42,7 +42,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.ethereum.core.Genesis.getZeroHash;
 import static org.ethereum.crypto.HashUtil.EMPTY_TRIE_HASH;
@@ -113,7 +112,7 @@ public class BlockGenerator {
         for (ByteArrayWrapper key : premine.keySet())
             state = state.put(key.getData(), premine.get(key).getAccountState().getEncoded());
 
-        return state.getHash();
+        return state.getHash().getBytes();
     }
 
     private Map<ByteArrayWrapper, InitialAddressState> generatePreMine(Map<byte[], BigInteger> alloc){
@@ -275,7 +274,7 @@ public class BlockGenerator {
             newHeader.setDifficulty(BigInteger.valueOf(difficulty).toByteArray());
         }
 
-        newHeader.setTransactionsRoot(Block.getTxTrie(txs).getHash());
+        newHeader.setTransactionsRoot(Block.getTxTrie(txs).getHash().getBytes());
 
         newHeader.setStateRoot(ByteUtils.clone(parent.getStateRoot()));
 

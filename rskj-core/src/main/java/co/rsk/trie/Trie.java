@@ -18,11 +18,13 @@
 
 package co.rsk.trie;
 
+import co.rsk.crypto.Sha3Hash;
+
 /**
  * Created by ajlopez on 29/03/2017.
  */
 public interface Trie {
-    byte[] getHash();
+    Sha3Hash getHash();
 
     byte[] get(byte[] key);
 

@@ -799,7 +799,7 @@ public class MinerServerImpl implements MinerServer {
                 CollectionUtils.size(uncles)
         );
         newHeader.setDifficulty(difficultyCalculator.calcDifficulty(newHeader, newBlockParent.getHeader()).toByteArray());
-        newHeader.setTransactionsRoot(Block.getTxTrie(txs).getHash());
+        newHeader.setTransactionsRoot(Block.getTxTrie(txs).getHash().getBytes());
         return newHeader;
     }
 
