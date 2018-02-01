@@ -21,6 +21,7 @@ package co.rsk.crypto;
 import co.rsk.bitcoinj.core.Utils;
 import com.google.common.primitives.Ints;
 import org.ethereum.rpc.TypeConverter;
+import org.spongycastle.pqc.math.linearalgebra.ByteUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -75,6 +76,13 @@ public class Sha3Hash implements Serializable, Comparable<Sha3Hash> {
      */
     public byte[] getBytes() {
         return bytes;
+    }
+
+    /**
+     * Returns an identical Sha3Hash with a copy of the the internal byte array.
+     */
+    public Sha3Hash copy() {
+        return new Sha3Hash(ByteUtils.clone(bytes));
     }
 
     @Override

@@ -18,6 +18,7 @@
 
 package co.rsk.trie;
 
+import co.rsk.crypto.Sha3Hash;
 import co.rsk.panic.PanicProcessor;
 import org.ethereum.crypto.SHA3Helper;
 import org.ethereum.datasource.HashMapDB;
@@ -74,7 +75,7 @@ public class TrieImpl implements Trie {
     private static final int SERIALIZATION_HEADER_LENGTH = Short.BYTES * 2 + Integer.BYTES * 2;
 
     // all zeroed, default hash for empty nodes
-    private static byte[] emptyHash = makeEmptyHash();
+    private static Sha3Hash emptyHash = makeEmptyHash();
 
     // this node associated value, if any
     private byte[] value;
@@ -86,7 +87,7 @@ public class TrieImpl implements Trie {
     private byte[][] hashes;
 
     // this node hash value
-    private byte[] hash;
+    private Sha3Hash hash;
 
     // it is saved to store
     private boolean saved;
@@ -287,18 +288,18 @@ public class TrieImpl implements Trie {
     @Override
     public byte[] getHash() {
         if (this.hash != null) {
-            return ByteUtils.clone(this.hash);
+            return this.hash.copy().getBytes();
         }
 
         if (isEmptyTrie(this.value, this.nodes, this.hashes)) {
-            return ByteUtils.clone(emptyHash);
+            return emptyHash.copy().getBytes();
         }
 
         byte[] message = this.toMessage();
 
-        this.hash = SHA3Helper.sha3(message);
+        this.hash = new Sha3Hash(SHA3Helper.sha3(message));
 
-        return ByteUtils.clone(this.hash);
+        return this.hash.copy().getBytes();
     }
 
     /**
@@ -1180,7 +1181,7 @@ public class TrieImpl implements Trie {
     public Trie getSnapshotTo(byte[] hash) {
         this.save();
 
-        if (Arrays.equals(emptyHash, hash)) {
+        if (emptyHash.equals(new Sha3Hash(hash))) {
             return new TrieImpl(this.store, this.isSecure);
         }
 
@@ -1223,7 +1224,7 @@ public class TrieImpl implements Trie {
      *
      * @return a hash with zeroed bytes
      */
-    private static byte[] makeEmptyHash() {
-        return sha3(RLP.encodeElement(EMPTY_BYTE_ARRAY));
+    private static Sha3Hash makeEmptyHash() {
+        return new Sha3Hash(sha3(RLP.encodeElement(EMPTY_BYTE_ARRAY)));
     }
 }
