@@ -83,7 +83,7 @@ public class TrieImpl implements Trie {
     private TrieImpl[] nodes;
 
     // the list of subnode hashes
-    private byte[][] hashes;
+    private Sha3Hash[] hashes;
 
     // this node hash value
     private Sha3Hash hash;
@@ -123,7 +123,7 @@ public class TrieImpl implements Trie {
     }
 
     // full constructor
-    private TrieImpl(byte[] encodedSharedPath, int sharedPathLength, byte[] value, TrieImpl[] nodes, byte[][] hashes, TrieStore store) {
+    private TrieImpl(byte[] encodedSharedPath, int sharedPathLength, byte[] value, TrieImpl[] nodes, Sha3Hash[] hashes, TrieStore store) {
         this.value = value;
         this.nodes = nodes;
         this.hashes = hashes;
@@ -218,19 +218,20 @@ public class TrieImpl implements Trie {
                 }
             }
 
-            byte[][] hashes = new byte[ARITY][];
+            Sha3Hash[] hashes = new Sha3Hash[arity];
 
             for (int k = 0; k < arity; k++) {
                 if ((bhashes & (1 << k)) == 0) {
                     continue;
                 }
 
-                hashes[k] = new byte[SHA3Helper.DEFAULT_SIZE_BYTES];
+                byte[] valueHash = new byte[SHA3Helper.DEFAULT_SIZE_BYTES];
 
-                if (istream.read(hashes[k]) != SHA3Helper.DEFAULT_SIZE_BYTES) {
+                if (istream.read(valueHash) != SHA3Helper.DEFAULT_SIZE_BYTES) {
                     throw new EOFException();
                 }
 
+                hashes[k] = new Sha3Hash(valueHash);
                 nhashes++;
             }
 
@@ -453,7 +454,7 @@ public class TrieImpl implements Trie {
         int bits = 0;
 
         for (int k = 0; k < ARITY; k++) {
-            byte[] nodeHash = this.getHash(k);
+            Sha3Hash nodeHash = this.getHash(k);
 
             if (nodeHash == null) {
                 continue;
@@ -485,13 +486,13 @@ public class TrieImpl implements Trie {
         }
 
         for (int k = 0; k < ARITY; k++) {
-            byte[] nodeHash = this.getHash(k);
+            Sha3Hash nodeHash = this.getHash(k);
 
             if (nodeHash == null) {
                 continue;
             }
 
-            buffer.put(nodeHash);
+            buffer.put(nodeHash.getBytes());
         }
 
         if (lvalue > 0) {
@@ -606,7 +607,7 @@ public class TrieImpl implements Trie {
 
         for (int k = 0; k < ARITY; k++) {
             TrieImpl node = this.getNode(k);
-            byte[] localHash = this.getHash(k);
+            Sha3Hash localHash = this.getHash(k);
 
             if (node != null && !isEmptyTrie(node.value, node.nodes, node.hashes) || localHash != null) {
                 count++;
@@ -635,16 +636,16 @@ public class TrieImpl implements Trie {
             return null;
         }
 
-        byte[] localHash = this.hashes[n];
+        Sha3Hash localHash = this.hashes[n];
 
         if (localHash == null) {
             return null;
         }
 
-        node = this.store.retrieve(localHash);
+        node = this.store.retrieve(localHash.getBytes());
 
         if (node == null) {
-            String strHash = Hex.toHexString(localHash);
+            String strHash = Hex.toHexString(localHash.getBytes());
             logger.error(ERROR_NON_EXISTENT_TRIE_LOGGER, strHash);
             panicProcessor.panic(PANIC_TOPIC, ERROR_NON_EXISTENT_TRIE + " " + strHash);
             throw new TrieSerializationException(ERROR_NON_EXISTENT_TRIE + " " + strHash, null);
@@ -668,7 +669,7 @@ public class TrieImpl implements Trie {
      * @return  node hash or null if no node is present
      */
     @Nullable
-    private byte[] getHash(int n) {
+    private Sha3Hash getHash(int n) {
         if (this.hashes != null && this.hashes[n] != null) {
             return this.hashes[n];
         }
@@ -683,7 +684,7 @@ public class TrieImpl implements Trie {
             return null;
         }
 
-        byte[] localHash = node.getHash().getBytes();
+        Sha3Hash localHash = node.getHash();
 
         this.setHash(n, localHash);
 
@@ -697,9 +698,9 @@ public class TrieImpl implements Trie {
      * @param hash  the subnode hash
      */
     @Override
-    public void setHash(int n, byte[] hash) {
+    public void setHash(int n, Sha3Hash hash) {
         if (this.hashes == null) {
-            this.hashes = new byte[ARITY][];
+            this.hashes = new Sha3Hash[ARITY];
         }
 
         this.hashes[n] = hash;
@@ -976,7 +977,7 @@ public class TrieImpl implements Trie {
 
         if (position >= length) {
             TrieImpl[] newNodes = cloneNodes(false);
-            byte[][] newHashes = cloneHashes();
+            Sha3Hash[] newHashes = cloneHashes();
 
             if (isEmptyTrie(value, newNodes, newHashes)) {
                 return null;
@@ -993,7 +994,7 @@ public class TrieImpl implements Trie {
         }
 
         TrieImpl[] newNodes = cloneNodes(true);
-        byte[][] newHashes = cloneHashes();
+        Sha3Hash[] newHashes = cloneHashes();
 
         int pos = key[position];
 
@@ -1032,7 +1033,7 @@ public class TrieImpl implements Trie {
 
     private TrieImpl split(int nshared) {
         TrieImpl[] newChildNodes = this.cloneNodes(false);
-        byte[][] newChildHashes = this.cloneHashes();
+        Sha3Hash[] newChildHashes = this.cloneHashes();
 
         TrieImpl newChildTrie = new TrieImpl(null, 0, this.value, newChildNodes, newChildHashes, this.store).withSecure(this.isSecure);
 
@@ -1068,13 +1069,13 @@ public class TrieImpl implements Trie {
      * @return a copy of the original hashes
      */
     @Nullable
-    private byte[][] cloneHashes() {
+    private Sha3Hash[] cloneHashes() {
         if (this.hashes == null) {
             return null;
         }
 
         int nhashes = this.hashes.length;
-        byte[][] newHashes = new byte[nhashes][];
+        Sha3Hash[] newHashes = new Sha3Hash[nhashes];
 
         for (int k = 0; k < nhashes; k++) {
             newHashes[k] = this.hashes[k];
@@ -1121,7 +1122,7 @@ public class TrieImpl implements Trie {
      *
      * @return true if no data
      */
-    private static boolean isEmptyTrie(byte[] value, TrieImpl[] nodes, byte[][]hashes) {
+    private static boolean isEmptyTrie(byte[] value, TrieImpl[] nodes, Sha3Hash[] hashes) {
         if (value != null && value.length != 0) {
             return false;
         }

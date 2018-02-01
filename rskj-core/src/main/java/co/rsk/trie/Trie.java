@@ -54,7 +54,7 @@ public interface Trie {
 
     void removeValue();
 
-    void setHash(int n, byte[] hash);
+    void setHash(int n, Sha3Hash hash);
 
     Trie getSnapshotTo(byte[] hash);
 
