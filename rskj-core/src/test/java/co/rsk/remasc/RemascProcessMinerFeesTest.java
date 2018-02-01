@@ -109,7 +109,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockWithOneTx);
         blocks.addAll(createSimpleBlocks(blockWithOneTx, 9));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());
@@ -152,7 +152,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockWithOneTx);
         blocks.addAll(createSimpleBlocks(blockWithOneTx, 9));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());
@@ -210,7 +210,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockThatIncludesUncle);
         blocks.addAll(createSimpleBlocks(blockThatIncludesUncle, 8));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());
@@ -312,7 +312,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockThatIncludesUnclesE);
         blocks.addAll(createSimpleBlocks(blockThatIncludesUnclesE, 7));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(),
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null,
                 blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
@@ -428,7 +428,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockThatIncludesUncleC);
         blocks.addAll(createSimpleBlocks(blockThatIncludesUncleC, 7));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());
@@ -504,7 +504,7 @@ public class RemascProcessMinerFeesTest {
         blocks.addAll(createSimpleBlocks(blockWithOneTxD, 7));
 
         BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(),
-                blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+                null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());
@@ -587,7 +587,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockWithOneTx);
         blocks.addAll(createSimpleBlocks(blockWithOneTx, 9));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());
@@ -651,7 +651,7 @@ public class RemascProcessMinerFeesTest {
         blocks.add(blockWithOneTx);
         blocks.addAll(createSimpleBlocks(blockWithOneTx, 9));
 
-        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), blockchain.getReceiptStore(), blockchain.getBlockStore(), null);
+        BlockExecutor blockExecutor = new BlockExecutor(config, blockchain.getRepository(), null, blockchain.getBlockStore(), null);
 
         for (Block b : blocks) {
             blockExecutor.executeAndFillAll(b, blockchain.getBestBlock());

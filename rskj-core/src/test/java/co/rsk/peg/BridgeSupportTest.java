@@ -452,7 +452,7 @@ public class BridgeSupportTest {
             blockchain.getBlockStore().saveBlock(block, BigInteger.ONE, true);
 
         org.ethereum.core.Block rskCurrentBlock = blocks.get(9);
-        ReceiptStore rskReceiptStore = blockchain.getReceiptStore();
+        ReceiptStore rskReceiptStore = null;
         org.ethereum.db.BlockStore rskBlockStore = blockchain.getBlockStore();
         Transaction tx = Transaction.create(config, TO_ADDRESS, DUST_AMOUNT, NONCE, GAS_PRICE, GAS_LIMIT, DATA);
         tx.sign(new ECKey().getPrivKeyBytes());

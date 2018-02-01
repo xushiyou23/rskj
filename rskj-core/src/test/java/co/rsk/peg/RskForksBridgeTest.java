@@ -27,17 +27,12 @@ import org.spongycastle.util.encoders.Hex;
 import co.rsk.test.World;
 import co.rsk.bitcoinj.core.Address;
 import co.rsk.bitcoinj.core.AddressFormatException;
-import co.rsk.bitcoinj.core.Coin;
 import co.rsk.bitcoinj.params.RegTestParams;
 import co.rsk.config.RskSystemProperties;
-import co.rsk.core.bc.BlockChainImpl;
-import co.rsk.test.World;
-import co.rsk.test.builders.BlockBuilder;
 import org.ethereum.config.BlockchainNetConfig;
 import org.ethereum.config.blockchain.RegTestConfig;
 import org.ethereum.core.*;
 import org.ethereum.crypto.ECKey;
-import org.ethereum.util.BIUtil;
 import org.ethereum.vm.PrecompiledContracts;
 import org.ethereum.vm.program.ProgramResult;
 import org.ethereum.vm.program.invoke.ProgramInvokeFactoryImpl;
@@ -45,7 +40,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -349,7 +343,7 @@ public class RskForksBridgeTest {
         rskTx.sign(new byte[32]);
 
         TransactionExecutor executor = new TransactionExecutor(config, rskTx, 0, blockChain.getBestBlock().getCoinbase(), repository,
-                        blockChain.getBlockStore(), blockChain.getReceiptStore(), new ProgramInvokeFactoryImpl(), blockChain.getBestBlock())
+                        blockChain.getBlockStore(), null, new ProgramInvokeFactoryImpl(), blockChain.getBestBlock())
                 .setLocalCall(true);
 
         executor.init();
