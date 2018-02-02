@@ -27,6 +27,7 @@ import static org.junit.Assert.assertThat;
 
 public class JsonRpcNettyServerTest {
 
+    public static final String APPLICATION_JSON = "application/json";
     private static JsonNodeFactory JSON_NODE_FACTORY = JsonNodeFactory.instance;
     private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -42,7 +43,7 @@ public class JsonRpcNettyServerTest {
 
     @Test
     public void smokeTestUsingJsonContentType() throws Exception {
-        smokeTest("application/json");
+        smokeTest(APPLICATION_JSON);
     }
 
     @Test
@@ -67,15 +68,31 @@ public class JsonRpcNettyServerTest {
 
     @Test
     public void smokeTestUsingValidHost() throws Exception {
-        smokeTest("application/json", "localhost");
+        smokeTest(APPLICATION_JSON, "localhost");
     }
 
     @Test(expected = IOException.class)
     public void smokeTestUsingInvalidHost() throws Exception {
-        smokeTest("application/json", "evil.com");
+        smokeTest(APPLICATION_JSON, "evil.com");
     }
 
+    @Test
+    public void smokeTestUsingValidHostAndHostName() throws Exception {
+        smokeTest(APPLICATION_JSON, "www.google.com", InetAddress.getByName("www.google.com"));
+    }
+
+    @Test(expected = IOException.class)
+    public void smokeTestUsingInvalidHostAndHostName() throws Exception {
+        InetAddress google = InetAddress.getByName("www.google.com");
+        smokeTest(APPLICATION_JSON, google.getHostAddress(), google);
+    }
+
+
     private void smokeTest(String contentType, String host) throws Exception {
+        smokeTest(contentType, host, InetAddress.getLocalHost());
+    }
+
+    private void smokeTest(String contentType, String host, InetAddress rpcHost) throws Exception {
         Web3 web3Mock = Mockito.mock(Web3.class);
         String mockResult = "output";
         Mockito.when(web3Mock.web3_sha3(Mockito.anyString())).thenReturn(mockResult);
@@ -86,17 +103,23 @@ public class JsonRpcNettyServerTest {
         int randomPort = 9999;//new ServerSocket(0).getLocalPort();
 
         List<ModuleDescription> filteredModules = Collections.singletonList(new ModuleDescription("web3", "1.0", true, Collections.emptyList(), Collections.emptyList()));
-        JsonRpcWeb3FilterHandler filterHandler = new JsonRpcWeb3FilterHandler("*");
+        JsonRpcWeb3FilterHandler filterHandler = new JsonRpcWeb3FilterHandler("*", rpcHost);
         JsonRpcWeb3ServerHandler serverHandler = new JsonRpcWeb3ServerHandler(web3Mock, filteredModules);
         JsonRpcNettyServer server = new JsonRpcNettyServer(InetAddress.getLoopbackAddress(), randomPort, 0, Boolean.TRUE, mockCorsConfiguration, filterHandler, serverHandler);
         server.start();
+        HttpURLConnection conn = null;
+        try {
+            conn = sendJsonRpcMessage(randomPort, contentType, host);
+            JsonNode jsonRpcResponse = OBJECT_MAPPER.readTree(conn.getInputStream());
 
-        HttpURLConnection conn = sendJsonRpcMessage(randomPort, contentType, host);
-        JsonNode jsonRpcResponse = OBJECT_MAPPER.readTree(conn.getInputStream());
-
-        assertThat(conn.getResponseCode(), is(HttpResponseStatus.OK.code()));
-        assertThat(jsonRpcResponse.at("/result").asText(), is(mockResult));
-        server.stop();
+            assertThat(conn.getResponseCode(), is(HttpResponseStatus.OK.code()));
+            assertThat(jsonRpcResponse.at("/result").asText(), is(mockResult));
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+            server.stop();
+        }
     }
 
     private void smokeTest(String contentType) throws Exception {

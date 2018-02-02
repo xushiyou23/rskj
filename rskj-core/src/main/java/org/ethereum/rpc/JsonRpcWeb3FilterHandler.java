@@ -9,6 +9,9 @@ import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 
 /**
  * Created by ajlopez on 18/10/2017.
@@ -17,11 +20,13 @@ import org.slf4j.LoggerFactory;
 @ChannelHandler.Sharable
 public class JsonRpcWeb3FilterHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final Logger LOGGER = LoggerFactory.getLogger("jsonrpc");
+    private final InetAddress rpcHost;
 
     private OriginValidator originValidator;
 
-    public JsonRpcWeb3FilterHandler(String corsOrigins) {
-        this.originValidator = new OriginValidator(corsOrigins);
+    public JsonRpcWeb3FilterHandler(String corsDomains, InetAddress rpcHost) {
+        this.originValidator = new OriginValidator(corsDomains);
+        this.rpcHost = rpcHost;
     }
 
     @Override
@@ -29,8 +34,18 @@ public class JsonRpcWeb3FilterHandler extends SimpleChannelInboundHandler<FullHt
         HttpMethod httpMethod = request.getMethod();
         HttpResponse response;
 
+        HttpHeaders headers = request.headers();
+
+        String host = headers.get(HttpHeaders.Names.HOST);
+        if (!isLocalIpAddress(InetAddress.getByName(host)) &&
+                !host.equals(rpcHost.getHostName())) {
+            LOGGER.error("Invalid host");
+            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN);
+            ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+            return;
+        }
+
         if (HttpMethod.POST.equals(httpMethod)) {
-            HttpHeaders headers = request.headers();
 
             String mimeType = HttpUtils.getMimeType(headers.get(HttpHeaders.Names.CONTENT_TYPE));
             String origin = headers.get(HttpHeaders.Names.ORIGIN);
@@ -56,4 +71,18 @@ public class JsonRpcWeb3FilterHandler extends SimpleChannelInboundHandler<FullHt
 
         ctx.write(response).addListener(ChannelFutureListener.CLOSE);
     }
+
+    private boolean isLocalIpAddress(final InetAddress address) {
+        // Check if the address is a valid special local or loop back
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress()) {
+            return true;
+        }
+        // Check if the address is defined on any interface
+        try {
+            return NetworkInterface.getByInetAddress(address) != null;
+        } catch (SocketException se) {
+            return false;
+        }
+    }
+
 }
