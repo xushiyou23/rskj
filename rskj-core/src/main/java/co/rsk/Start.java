@@ -194,7 +194,9 @@ public class Start {
         web3Service = web3Factory.newInstance();
         web3Service.start();
         JsonRpcWeb3ServerHandler serverHandler = new JsonRpcWeb3ServerHandler(web3Service, rskSystemProperties.getRpcModules());
-        JsonRpcWeb3FilterHandler filterHandler = new JsonRpcWeb3FilterHandler(rskSystemProperties.corsDomains(), rskSystemProperties.rpcHost());
+        JsonRpcWeb3FilterHandler filterHandler = new JsonRpcWeb3FilterHandler(
+                rskSystemProperties.corsDomains(), rskSystemProperties.rpcAddress(), rskSystemProperties.rpcHost());
+
         new JsonRpcNettyServer(
             rskSystemProperties.rpcAddress(),
             rskSystemProperties.rpcPort(),
